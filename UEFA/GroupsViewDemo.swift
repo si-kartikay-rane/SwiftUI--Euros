@@ -155,13 +155,13 @@ struct GroupListDemo: View {
             .frame(height:60)
         }
         .onMove(perform: { indices, newOffset in
-                    move(indices: indices, newOffset: newOffset)
+            move(indices: indices, newOffset: newOffset)
         })
         
     }
     
     func move(indices: IndexSet, newOffset: Int){
-//        viewModel.newTeamsDict.move(fromOffsets: indices, toOffset: newOffset)
+        //        viewModel.newTeamsDict.move(fromOffsets: indices, toOffset: newOffset)
     }
     
 }
@@ -226,3 +226,4 @@ struct GroupsView_Previews_New: PreviewProvider {
         GroupsViewDemo(viewModel: GroupsViewModel())
     }
 }
+
