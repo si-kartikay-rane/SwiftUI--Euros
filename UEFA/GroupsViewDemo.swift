@@ -66,7 +66,7 @@ struct GroupHeaderDemo: View {
                         }) {
                             if isEnabled[i]{
                                 VStack{
-                                    Image("germany")
+                                    Image("albania")
                                         .resizable()
                                         .frame(width: 40, height: 40)
                                         .cornerRadius(25)
@@ -142,23 +142,16 @@ struct GroupListDemo: View {
                 .listRowBackground(Color(hex: 0x101d6b))
             }
             .onMove { indices, newOffset in
-                move(team: groupKey, indices: indices, newOffset: newOffset)
+                viewModel.move(team: groupKey, indices: indices, newOffset: newOffset)
                 print(viewModel.newTeamsDict)
                 print(viewModel.predictor)
             }
             
         }
+        .frame(height: 263)
         .environment(\.editMode, .constant(.active))
         .listStyle(.plain)
-        .frame(height: 263)
-        
-    }
-    
-    func move(team: String, indices: IndexSet, newOffset: Int) {
-        var teamArray = viewModel.newTeamsDict[team]
-        teamArray?.move(fromOffsets: indices, toOffset: newOffset)
-        viewModel.newTeamsDict[team] = teamArray
-        viewModel.indexMovedTeam()
+       
     }
 }
 

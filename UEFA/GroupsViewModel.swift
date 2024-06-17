@@ -52,4 +52,11 @@ class GroupsViewModel: ObservableObject{
             indexMovedTeam()
         }
     }
+    
+    func move(team: String, indices: IndexSet, newOffset: Int) {
+        var teamArray = newTeamsDict[team]
+        teamArray?.move(fromOffsets: indices, toOffset: newOffset)
+        newTeamsDict[team] = teamArray
+        indexMovedTeam()
+    }
 }
