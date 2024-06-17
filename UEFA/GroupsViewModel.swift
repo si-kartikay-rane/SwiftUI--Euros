@@ -26,16 +26,30 @@ class GroupsViewModel: ObservableObject{
         "F" : ["","","",""]
     ]
     
-    @Published var predictor : [String] = []
+    @Published var predictor : [String : String] = [
+        "C" : "",
+        "A" : "",
+        "B" : "",
+        "D" : "",
+        "E" : "",
+        "F" : ""
+    ]
     
     //MARK: - Functions
+    func indexMovedTeam(){
+        for (groupKey, value) in newTeamsDict {
+            if value.indices.contains(2) {
+                predictor[groupKey] = value[2]
+            }
+        }
+    }
     
     func addTeams(team: String, groupKey: String){
         if let firstEmptyIndex = newTeamsDict[groupKey]?.firstIndex(where: { $0.isEmpty }){
             if !newTeamsDict[groupKey]!.contains(team){
                 newTeamsDict[groupKey]?[firstEmptyIndex] = team
             }
+            indexMovedTeam()
         }
-        print(newTeamsDict)
     }
 }

@@ -11,7 +11,7 @@ struct GroupsViewDemo: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing:70){
+            VStack(spacing:20){
                 VStack(spacing: 20) {
                     ForEach(0..<viewModel.groupTeamsDict.keys.count, id: \.self) { i in
                         VStack(spacing: 0){
@@ -26,7 +26,6 @@ struct GroupsViewDemo: View {
                 PredictorUIDemo(viewModel: viewModel)
             }
         }
-        .scrollIndicators(.hidden)
     }
 }
 
@@ -59,13 +58,10 @@ struct GroupHeaderDemo: View {
             }
             HStack(spacing: 35){
                 ForEach(teams.indices, id: \.self) { i in
-                    
-                    
                     if !allFalse{
                         Button(action: {
                             viewModel.addTeams(team: teams[i], groupKey: groupKey)
                             self.isEnabled[i].toggle()
-                            print("Clicked")
                             
                         }) {
                             if isEnabled[i]{
@@ -87,12 +83,8 @@ struct GroupHeaderDemo: View {
                                 
                                 VStack{
                                     Circle()
-                                        .foregroundColor(Color.gray.opacity(0.5))
+                                        .foregroundColor(Color.gray.opacity(0.7))
                                         .frame(width: 40, height: 40)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 25)
-                                                .stroke(Color.white.opacity(0.5), lineWidth: 2)
-                                        )
                                     Text(" ")
                                         .foregroundColor(.white)
                                 }
@@ -106,7 +98,12 @@ struct GroupHeaderDemo: View {
         }
         .padding(.vertical, 20)
         .background(
-            allFalse ? AnyView(Image(.headerBG).scaledToFit()): AnyView(Color.blue)
+            HStack{
+                allFalse ? Color.headingColour : Color.blue
+                Spacer().frame(width: 0)
+                allFalse ? AnyView(Image(.headerBG).resizable().scaledToFit()): AnyView(Color.blue)
+            }
+            
         )
     }
     
@@ -117,54 +114,55 @@ struct GroupListDemo: View {
     var index: Int
     @ObservedObject var viewModel: GroupsViewModel
     
-    
     var body: some View {
-        
         let groupKey = viewModel.groupTeamsDict.keys.sorted()[index]
         let teams = viewModel.newTeamsDict[groupKey] ?? []
         
-        ForEach(teams.indices, id: \.self) { index in
-            List{
-                HStack(spacing:20){
-                    Text("\(index + 1)")
-                        .foregroundColor(Color.gray.opacity(0.5))
-                        .frame(width: 10)
-                    
-                    Circle()
-                        .foregroundColor(Color.gray.opacity(0.5))
-                        .frame(width: 40, height: 40)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 25)
-                                .stroke(Color.white.opacity(0.5), lineWidth: 2)
-                        )
-                    
-                    Text(teams[index])
-                        .foregroundColor(Color.white)
-                        .frame(width: 50)
+        List {
+            ForEach(teams.indices, id: \.self) { teamIndex in
+                VStack(alignment: .leading, spacing: 13) {
+                    HStack(spacing: 20) {
+                        Text("\(teamIndex + 1)")
+                            .foregroundColor(Color.gray.opacity(0.5))
+                            .frame(width: 10)
+                        
+                        Circle()
+                            .foregroundColor(Color.gray.opacity(0.5))
+                            .frame(width: 40, height: 40)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .stroke(Color.white.opacity(0.5), lineWidth: 2)
+                            )
+                        
+                        Text(teams[teamIndex])
+                            .foregroundColor(Color.white)
+                            .frame(width: 50)
+                    }
                 }
                 .listRowBackground(Color(hex: 0x101d6b))
-                .listRowSeparator(.visible)
-                .listRowSeparatorTint(Color.gray.opacity(0.5))
             }
-            .toolbar {
-                EditButton()
+            .onMove { indices, newOffset in
+                move(team: groupKey, indices: indices, newOffset: newOffset)
+                print(viewModel.newTeamsDict)
+                print(viewModel.predictor)
             }
-            .environment(\.editMode, .constant(.active))
-            .listStyle(.plain)
-            .scrollDisabled(true)
-            .frame(height:60)
+            
         }
-        .onMove(perform: { indices, newOffset in
-            move(indices: indices, newOffset: newOffset)
-        })
+        .environment(\.editMode, .constant(.active))
+        .listStyle(.plain)
+        .frame(height: 263)
         
     }
     
-    func move(indices: IndexSet, newOffset: Int){
-        //        viewModel.newTeamsDict.move(fromOffsets: indices, toOffset: newOffset)
+    func move(team: String, indices: IndexSet, newOffset: Int) {
+        var teamArray = viewModel.newTeamsDict[team]
+        teamArray?.move(fromOffsets: indices, toOffset: newOffset)
+        viewModel.newTeamsDict[team] = teamArray
+        viewModel.indexMovedTeam()
     }
-    
 }
+
+
 
 // MARK: - Footer
 struct GroupFooterDemo: View {
@@ -173,7 +171,7 @@ struct GroupFooterDemo: View {
             Spacer()
             Button("View Group details") {
             }
-            .tint(.yellow)
+            .foregroundColor(.yellow)
             Spacer()
         }
         .padding()
@@ -185,22 +183,33 @@ struct GroupFooterDemo: View {
 
 struct PredictorUIDemo: View{
     
+    
     @ObservedObject var viewModel: GroupsViewModel
     
     var body: some View {
         VStack(spacing:0){
             VStack(spacing:0){
-                Text("Predict the four best third - placed teams")
-                    .font(.system(size: 18))
-                    .foregroundColor(.white)
-                Text("The four with the most points will progress to the knockout stages")
-                    .font(.system(size: 14))
-                    .foregroundColor(.white)
+                HStack{
+                    Spacer()
+                    VStack(alignment: .leading,spacing: 10){
+                        Text("Predict the four best third - placed teams")
+                            .font(.system(size: 18))
+                            .foregroundColor(.white)
+                        Text("The four with the most points will progress to the knockout stage.")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white)
+                    }
+                    Spacer()
+                }
             }
-            .padding(.all, 20)
+            .padding([.top,.bottom])
             .background(Color.blue)
+            
             PredictorListUI(viewModel: viewModel)
         }
+        .cornerRadius(10)
+        .padding(15)
+        
     }
     
 }
@@ -209,17 +218,52 @@ struct PredictorListUI: View{
     @ObservedObject var viewModel: GroupsViewModel
     
     var rowHeight: CGFloat? = 60
-    var predictorArray = ["","","","","",""]
+    @State private var isChecked: Bool = false
     
     var body: some View{
-        List{
-            Text("Kartikay")
+        
+        ForEach(viewModel.predictor.keys.sorted(), id: \.self){i in
+            List{
+                HStack(spacing:20){
+                    Toggle(isOn: $isChecked) {
+                    }
+                    .frame(width: 30)
+                    .toggleStyle(CheckboxToggleStyle())
+                    HStack(spacing: 15){
+                        Circle()
+                            .foregroundColor(Color.gray.opacity(0.5))
+                            .frame(width: 35, height: 35)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .stroke(Color.white.opacity(0.5), lineWidth: 2)
+                            )
+                        Text("\(viewModel.predictor[i] ?? "")").foregroundColor(.white)
+                        Spacer()
+                        Text("Group \(i)").foregroundColor(.white).opacity(0.5)
+                    }
+                    
+                }
+                .listRowBackground(Color(hex: 0x101d6b))
+                .padding(2)
+            }
+            
         }
         .listStyle(.plain)
-        .frame(height: 60)
+        .frame(height: rowHeight)
     }
 }
 
+struct CheckboxToggleStyle: ToggleStyle {
+    func makeBody(configuration: Self.Configuration) -> some View {
+        HStack {
+            Image(systemName: configuration.isOn ? "checkmark.circle.fill" : "circle")
+                .resizable()
+                .foregroundColor(configuration.isOn ? .white : .white.opacity(0.5))
+                .frame(width: 35, height: 35)
+                .onTapGesture { configuration.isOn.toggle() }
+        }
+    }
+}
 
 struct GroupsView_Previews_New: PreviewProvider {
     static var previews: some View {
