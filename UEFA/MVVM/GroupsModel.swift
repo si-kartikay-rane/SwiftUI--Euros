@@ -6,19 +6,21 @@
 //
 
 import Foundation
+import SwiftUI
 
 struct Group {
-    let name: String
-    let teams: [Team]
+    var name: String
+    var teams: [Team]
 }
 
 struct Team {
-    let teamName : String
-    let teamFlag : String
+    var teamName : String
+    var teamFlag : String
 }
 
 struct Predictor {
-    let name : String
-    let teamName : String
-    let flag : String
+    var name : String
+    var teamName : String
+    var flag : String
+    var isChecked : Bool
 }
