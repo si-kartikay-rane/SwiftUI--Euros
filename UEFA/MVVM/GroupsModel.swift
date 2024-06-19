@@ -15,6 +15,7 @@ struct Group {
 
 struct Team {
     var teamName : String
+    var fullTeamName : String
     var teamFlag : String
 }
 

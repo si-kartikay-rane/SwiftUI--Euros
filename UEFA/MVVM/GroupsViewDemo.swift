@@ -10,32 +10,38 @@ struct GroupsViewDemo: View {
     @ObservedObject var viewModel: GroupsViewModel
     
     var body: some View {
+        var groups = viewModel.groupTeamsDictNew
         VStack(spacing:0){
-                navBar()
+            // Navigation Bar
+            navBar()
                 .frame(height: 80)
                 .ignoresSafeArea(.all,edges: .top)
+            VStack(spacing:5){
+                // Progress Bar
+                ProgressView(value: Double(viewModel.progressViewCounter), total: 24)
+                    .accentColor(.yellow)
+                    .progressViewStyle(.linear)
+                    .padding([.horizontal,.top],15)
                 
-                    VStack(spacing:20){
-                        ScrollView {
-                        VStack(spacing: 20) {
-                            ForEach(viewModel.groupTeamsDictNew.indices) { i in
-                                VStack(spacing: 0){
-                                    GroupHeaderDemo(index: i, viewModel: viewModel)
-                                    GroupListDemo(index: i,viewModel: viewModel)
-                                    GroupFooterDemo()
-                                }
-                                .frame(width: UIScreen.main.bounds.width - 30)
-                                .cornerRadius(15)
+                ScrollView {
+                    VStack(spacing: 20) {
+                        ForEach(groups.indices) { i in
+                            VStack(spacing: 0){
+                                GroupHeaderDemo(index: i, viewModel: viewModel)
+                                GroupListDemo(index: i,viewModel: viewModel)
+                                GroupFooterDemo()
                             }
+                            .cornerRadius(15)
                         }
-                        PredictorUIDemo(viewModel: viewModel)
+                        .padding(.horizontal,15)
                     }
-                    .background(Color.scrollBg)
-                    .padding(.vertical,20)
+                    PredictorUIDemo(viewModel: viewModel)
                 }
-                .background(Color.scrollBg)
-                .ignoresSafeArea(.all,edges: .vertical)
+                .padding(.vertical,20)
             }
+            .background(Color.scrollBg)
+            .ignoresSafeArea(.all,edges: .vertical)
+        }
     }
 }
 
@@ -44,7 +50,7 @@ struct GroupsViewDemo: View {
 struct navBar : View{
     var body: some View {
         ZStack {
-           Image("headerBG")
+            Image("headerBG")
                 .resizable()
                 .scaledToFill()
                 .clipped()
@@ -66,10 +72,9 @@ struct navBar : View{
 
 // MARK: - Header
 struct GroupHeaderDemo: View {
+    
     var index: Int
     @State private var isEnabled: [Bool] = [true, true, true, true]
-    
-    
     @ObservedObject var viewModel: GroupsViewModel
     
     var body: some View {
@@ -97,7 +102,7 @@ struct GroupHeaderDemo: View {
                         Button(action: {
                             viewModel.addTeams(team: teams[i], groupKey: groupKey)
                             self.isEnabled[i].toggle()
-                            
+                            viewModel.progressViewCounter += 1
                         }) {
                             if isEnabled[i]{
                                 VStack{
@@ -172,9 +177,9 @@ struct GroupListDemo: View {
                             )
                             .padding(.vertical,2.5)
                         
-                        Text(teams[teamIndex].teamName)
+                        Text(teams[teamIndex].fullTeamName)
                             .foregroundColor(Color.white)
-                            .frame(width: 50)
+                        
                     }
                 }
                 .listRowBackground(Color(hex: 0x101d6b))
@@ -187,7 +192,7 @@ struct GroupListDemo: View {
         .frame(height: 263)
         .environment(\.editMode, .constant(.active))
         .listStyle(.plain)
-       
+        
     }
 }
 
@@ -208,7 +213,7 @@ struct GroupFooterDemo: View {
     }
 }
 
-
+// MARK: - PredictorUI
 
 struct PredictorUIDemo: View{
     
@@ -243,58 +248,70 @@ struct PredictorUIDemo: View{
     
 }
 
+// MARK: - PredictorUILists
+
 struct PredictorListUI: View{
     @ObservedObject var viewModel: GroupsViewModel
-    
-    var rowHeight: CGFloat? = 60
-    @State private var isChecked: Bool = false
+    var rowHeight: CGFloat? = 55
     
     var body: some View{
-        
-        ForEach(viewModel.predictorNew.indices, id: \.self){i in
-            List{
-                HStack(spacing:20){
+        let items = viewModel.predictorNew
+        let maxSelectionsReached = viewModel.checkedItemsCount >= 4
+        VStack(spacing:0){
+            ForEach(items.indices, id: \.self){i in
+                VStack(spacing:0){
+                    HStack(spacing:15){
                         Toggle(isOn: $viewModel.predictorNew[i].isChecked) {
                         }
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 25)
+                                .stroke(Color.white.opacity(0.7), lineWidth: 0.7)
+                        )
                         .frame(width: 30)
                         .toggleStyle(CheckboxToggleStyle())
-                        .disabled(viewModel.predictorNew[i].flag == "")
+                        .disabled(items[i].flag == "" || (maxSelectionsReached && !items[i].isChecked))
+                        .disabled(items[i].flag == "")
                         HStack(spacing: 15){
                             
-                            Image("\(viewModel.predictorNew[i].flag)")
+                            Image("\(items[i].flag)")
                                 .resizable()
                                 .frame(width: 30, height: 30)
                                 .cornerRadius(25)
-                                .background(viewModel.predictorNew[i].flag == "" ? Color.gray.opacity(0.5) : Color.clear).cornerRadius(25)
+                                .background(items[i].flag == "" ? Color.gray.opacity(0.5) : Color.clear).cornerRadius(25)
                                 .overlay(
-                                    viewModel.predictorNew[i].flag != "" ? RoundedRectangle(cornerRadius: 25)
+                                    items[i].flag != "" ? RoundedRectangle(cornerRadius: 25)
                                         .stroke(Color.white, lineWidth: 2) : nil
                                 )
                             
-                            Text("\(viewModel.predictorNew[i].teamName)").foregroundColor(.white)
+                            Text("\(items[i].teamName)").foregroundColor(.white)
                             Spacer()
-                            Text("Group \(viewModel.predictorNew[i].name)").foregroundColor(.white).opacity(0.5)
+                            Text("Group \(items[i].name)").foregroundColor(.white).opacity(0.5)
                         }
-
+                        
+                    }
+                    .padding(.horizontal,20)
+                    .padding(.vertical,12)
+                    if items[i].name != "F"{
+                        Divider().frame(height: 0.5).background(Color.gray).opacity(0.3)
+                    }
                 }
-                .listRowBackground(Color(hex: 0x101d6b))
-                .padding(5)
+                .frame(height: rowHeight)
+                .background(viewModel.predictorNew[i].isChecked ? Color(hex: 0x101d6b) : Color(hex: 0x101d6b).opacity(0.4))
+                .blur(radius: maxSelectionsReached && !items[i].isChecked ? 3.0 : 0)
             }
-            
         }
-        .listStyle(.plain)
-        .frame(height: rowHeight)
     }
 }
 
+// MARK: - CheckBox Toggle struct
 struct CheckboxToggleStyle: ToggleStyle {
     func makeBody(configuration: Self.Configuration) -> some View {
-    
+        
         HStack {
-            Image(systemName: configuration.isOn ? "checkmark.circle.fill" : "circle")
+            Image(systemName: configuration.isOn ? "checkmark.circle.fill" : "")
                 .resizable()
                 .foregroundColor(configuration.isOn ? .white : .white.opacity(0.5))
-                .frame(width: 35, height: 35)
+                .frame(width: 25, height: 25)
                 .onTapGesture { configuration.isOn.toggle() }
         }
     }
