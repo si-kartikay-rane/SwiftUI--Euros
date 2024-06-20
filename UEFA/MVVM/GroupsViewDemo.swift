@@ -270,7 +270,7 @@ struct PredictorListUI: View{
                         .frame(width: 30)
                         .toggleStyle(CheckboxToggleStyle())
                         .disabled(items[i].flag == "" || (maxSelectionsReached && !items[i].isChecked))
-                        .disabled(items[i].flag == "")
+
                         HStack(spacing: 15){
                             
                             Image("\(items[i].flag)")

@@ -11,7 +11,6 @@ import SwiftUI
 struct UEFAGrpStageApp: App {
     var body: some Scene {
         WindowGroup {
-//            GroupsView(viewModel: GroupsViewModel())
             GroupsViewDemo(viewModel: GroupsViewModel())
         }
     }
